@@ -239,6 +239,18 @@ def history(authorization: str | None = Header(None)):
     verify(authorization)
     return {"history": list(prices.signal_history), "consecutive_losses": prices.consecutive_losses}
 
+@app.post("/api/trade-result")
+def trade_result(symbol: str, direction: str, result: str, authorization: str | None = Header(None)):
+    verify(authorization)
+    # التحقق من أن النتيجة صحيحة
+    if result not in ["WIN", "TIE", "LOSS"]:
+        raise HTTPException(400, "نتيجة غير صالحة")
+    
+    # إضافة النتيجة إلى السجل
+    prices.add_signal_result(symbol, direction, result)
+    
+    return {"status": "ok", "message": "تم حفظ النتيجة."}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("bot:app", host="0.0.0.0", port=8000, reload=False)
