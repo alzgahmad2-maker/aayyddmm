@@ -239,6 +239,15 @@ def history(authorization: str | None = Header(None)):
     verify(authorization)
     return {"history": list(prices.signal_history), "consecutive_losses": prices.consecutive_losses}
 
+@app.delete("/api/history")
+def clear_history(authorization: str | None = Header(None)):
+    verify(authorization)
+    with prices.lock:
+        prices.signal_history.clear()
+        prices.consecutive_losses = 0
+        prices.pause_until = None
+    return {"status": "ok", "message": "تم مسح السجل بنجاح."}
+
 @app.post("/api/trade-result")
 def trade_result(symbol: str, direction: str, result: str, authorization: str | None = Header(None)):
     verify(authorization)
